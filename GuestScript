@@ -109,6 +109,8 @@ end
 
 
 
+
+
 local Version = "1"
 
 
@@ -162,7 +164,7 @@ getgenv().DemonTime_settings = {
     hitrate = 20,
     damage_mode = "bypass", --modes: normal, bypass
     custom_mode = {
-        bypass = bypass,
+        bypass = true,
         delay_between_hits = 0, -- seconds
         end_touch_after = 0, -- seconds
 
@@ -522,18 +524,14 @@ functions["bypasshit"] = function(Hitter,Target,Delay,Delay2,Fake)
         for _,v in pairs(ToHit) do
             firetouchinterest(v,Target,0)
         end
-        if Delay then
-            wait(Delay)
-        end
+
         FakeTouching[Target] = true
         spawn(function()
-            if Delay2 then
-                wait(Delay2)
-            end
+
             FakeTouching[Target] = nil
         end)
         for _,v in pairs(ToHit) do
-            firetouchinterest(v,Target,1)
+            firetouchinterest(v,Target,0)
         end
     end
 end
@@ -544,15 +542,15 @@ functions["hit"] = function(Hitter,FakeHandles,Target)
         functions["bypasshit"](Hitter,Target,.039,.045,FakeHandles)
     elseif mode == "normal" then
         firetouchinterest(Hitter,Target,0)
-        firetouchinterest(Hitter,Target,1)
+        firetouchinterest(Hitter,Target,0)
         for _,v in pairs(FakeHandles) do
             firetouchinterest(v,Target,0)
-            firetouchinterest(v,Target,1)
+            firetouchinterest(v,Target,0)
         end
     elseif mode == "bam" then
         for i = 1,20 do
         	firetouchinterest(Hitter,Target,0)
-        	firetouchinterest(Hitter,Target,1)
+        	firetouchinterest(Hitter,Target,0)
 		end
 	end
 end
@@ -726,7 +724,7 @@ functions["main"] = function()
                                     for _,v2 in pairs(v) do
                                         if DemonTime_settings.hitrate ~= 1 then
                                             if DemonTime_settings.hits == DemonTime_settings.hitrate then
-                                                if tick() - DemonTime_settings.lasthit >= 1 then
+                                                if tick() - DemonTime_settings.lasthit >= 0 then
                                                     DemonTime_settings.hits = 0
                                                 else
                                                     continue
@@ -783,7 +781,7 @@ local function Lunge(CSword)
             end
         end)
         repeat
-            CSword:Activate()
+            CSword:Activate(1)
             local t = tick()
             repeat RS.RenderStepped:Wait() until tick() - t > ClickRate
         until CSword ~= Sword or Lunged or not CSword
@@ -1105,13 +1103,13 @@ UIMain.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 UIMain.BackgroundTransparency = 0.300
 UIMain.BorderSizePixel = 0
 UIMain.Position = UDim2.new(0.939453645, 0, 0.5, 0)
-UIMain.Size = UDim2.new(0.12, 0, 0.4, 0)
+UIMain.Size = UDim2.new(0.10, 0, 0.35, 0)
 
 Frame.Parent = UIMain
 Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 Frame.BackgroundTransparency = 1.000
 Frame.BorderSizePixel = 0
-Frame.Size = UDim2.new(0, 2, 0, 45)
+Frame.Size = UDim2.new(0, 2, 0, 70)
 
 TextLabel.Parent = ui
 TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1290,11 +1288,6 @@ DemonTime_settings.update_functions["size"] = createSettingBox("Mag",function(v)
     MainEvent:Fire("size_change")
 end,DemonTime_settings.size,"number",1,6)
 
-DemonTime_settings.update_functions["hit_rate"] = createSettingBox("Dmg",function(v)
-	if tonumber(v) ~= nil then
-		DemonTime_settings.hitrate = tonumber(v)
-	end
-end,DemonTime_settings.hitrate,"number",0,20)
 
 MainConnections["uis"] = UIS.InputBegan:Connect(function(input,no)
 	if no then return end
